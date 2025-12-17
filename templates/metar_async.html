@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!--Comment-->
+        <title>Practice page</title>
+        <style>
+            .button {
+                background-color: rgb(37, 218, 85);
+                color: black;
+                border:blue
+                
+            }
+            table, th, td {
+                border-color: blue;
+                border: 1px solid magenta;
+            
+            }
+            
+        </style>
+    </head>
+    <body>
+        <form id="metar_form">
+            ICAO Airport:<input type="text" name="ID"/>
+            <button class="button" name="submit_data" value="submit">Submit</button>
+        </form>
+         <button class="button" id="delete_btn" name="delete" value="delete">Delete</button>
+        <table id="display" class="table">
+        </table>
+    </body>
+    <script>
+        
+const ipAddr = "http://127.0.0.1:8080"
+const sock_ip = "ws://127.0.0.1:7890"
+let sessionID = ""
+let tafWindow;
+const socket = new WebSocket(sock_ip)
+const metarForm = document.getElementById("metar_form")
+metarForm.addEventListener("submit", event =>{
+    output = {}
+    event.preventDefault();
+    console.log(event.submitter.name)
+    console.log(event.target.ID.value)
+    output.metar = event.target.ID.value
+    output._id = sessionID
+    console.log(JSON.stringify(output))
+    socket.send(JSON.stringify(output))
+    console.log(output)
+})
+
+const delBtn = document.getElementById("delete_btn")
+delBtn.addEventListener("click", event => {
+    while (display.firstChild) {
+        display.removeChild(display.lastChild)
+    }
+})
+display = document.getElementById("display") //main table
+socket.addEventListener("message", event => {
+    main_data = JSON.parse(event.data)
+    console.log(main_data)
+    if (main_data.You == sessionID) {
+        socket.close()
+    } else if ("ID" in main_data) {
+        sessionID = main_data.ID;
+        console.log(sessionID)
+    } else if ("server" in main_data) {
+        console.log(main_data.server);
+    } else {
+        if ("metar" in main_data) {
+        console.log(main_data)
+        let newElRow = document.createElement("tr")
+        let newElTd = [];
+        for (let i=0; i<3; i++) {
+            let newElData = document.createElement("td")
+            newElData.setAttribute("class", "table_data")
+            newElTd.push(newElData)
+            newElRow.appendChild(newElData)
+        }
+        for (let[key, val] of Object.entries(main_data.metar)) {
+            newElTd[0].innerHTML = `${key}`
+            newElTd[1].innerHTML = `${val}`
+            if (main_data.metar){
+                tafBtn = document.createElement("button");
+                tafBtn.setAttribute("type", "submit")
+                tafBtn.setAttribute("value", key)
+                tafBtn.innerText = "TAF"
+                tafBtn.addEventListener("click", e=>{
+                    output = {}
+                    output._id = sessionID
+                    output.taf = key
+                    console.log(e.target)
+                    console.log(e.target.value)
+                    socket.send(JSON.stringify(output))
+                })
+            newElTd[2].appendChild(tafBtn)
+            }
+        display.appendChild(newElRow)
+        }
+        } else if ("taf" in main_data) {
+            let taf = main_data.taf
+            tafWindow =  window.open("/taf",'TAF','width=300,height=300')
+            setTimeout(() => {
+                tafWindow.postMessage(JSON.stringify(taf), ipAddr)
+            }, 250)
+            
+        }
+    }
+})
+
+window.addEventListener("load", event=>{
+    setTimeout(()=>{
+        sendMsg({"init": 0});
+    }, 250)
+    
+    console.log("loaded page")
+            
+        })
+function sendMsg(msg) {
+    socket.send(JSON.stringify(msg))
+    
+}
+
+
+
+    </script>

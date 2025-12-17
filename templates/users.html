@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+.users_header {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: medium;
+    font-style: italic;
+    color: blue;
+}
+.users {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: medium;
+    font-weight: bold;
+    font-style: italic;
+    color: rgb(237, 5, 40); 
+}
+.logout {
+    position: absolute;
+    bottom: 0;
+}
+        </style>
+
+    </head>
+    <body>
+        <p class="users_header">Online:</p>
+        <p id="user_data"></p>
+        <button class="logout" onclick="closePaent();">Logout</button>
+    </body>
+    <script>
+const ipAddr = "http://127.0.0.1:8080"
+let message = [];
+let numUsers = 0;
+let openDoor = new Audio("{{ url_for('static', path='open.mp3')}}")
+let closeDoor = new Audio("{{ url_for('static', path='close.mp3')}}")
+let user_data = document.getElementById("user_data")
+user_data.setAttribute("class", "users")
+let user =  document.createElement("li");
+user.innerText = "";
+user_data.appendChild(user)
+window.addEventListener("message", (event) => {
+if (event.origin !== ipAddr) {
+    alert("Security Breach ! ! !")
+} else {
+    let new_data = 'first'
+    new_data = JSON.parse(event.data);
+    console.log(`Users Page: ${new_data}`)
+    if ("users" in new_data) {
+        console.log(user_data.children)
+        while (user_data.firstChild) {
+            user_data.removeChild(user_data.lastChild); //removes all users
+        }
+        if (new_data.users.length > numUsers) {
+            openDoor.play();
+        } else if (new_data.users.length < numUsers) {
+            closeDoor.play();
+        }
+        numUsers = new_data.users.length
+        for (let key of new_data.users) {
+            let user =  document.createElement("li");
+            user.innerText = key;
+            user_data.appendChild(user)
+            console.log("New Element created")
+        console.log(user_data.children)
+        message = Object.keys(new_data.users);
+        console.log(user_data.childElementCount)
+        }
+    }
+}
+})
+
+
+closePaent = () => parent.postMessage('closed', '*')  
+    </script>
+</html>

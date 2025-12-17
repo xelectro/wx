@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+
+    </head>
+    <style>
+.in_text {
+font-size: medium;
+color: blue;
+font-family: 'Times New Roman', Times, serif;
+}
+.out_text {
+font-size: medium;
+color: rgb(241, 12, 80);
+font-family: 'Times New Roman', Times, serif;
+}
+
+    </style>
+    <body><table>
+        <tr><td><p id ="users"></p></td>
+       <td> <p id="chat_window"></p></td>
+        </tr>
+     </table>
+        <script>
+        const ipAddr = "http://127.0.0.1:8080"
+        let chat = document.getElementById("chat_window")
+        let users = document.getElementById("users")
+        let chat_data = document.createElement("li")
+        let time = document.createElement("li")
+        let user_data = document.createElement("li")
+        let inSound = new Audio('{{url_for("static", path="incoming.mp3")}}')
+        let outSound = new Audio('{{url_for("static", path="outgoing.mp3")}}')
+        let new_data = {};
+        chat.appendChild(time)
+        window.addEventListener("message", (event) => {
+        if (event.origin !== ipAddr) {
+            alert("Security Breach ! ! !")
+        } else {
+            new_data = JSON.parse(event.data)
+            console.log(`Output window: ${new_data.timestamp}`)
+            if ("timestamp" in new_data) {
+                console.log("Timestamp")
+                time.innerText = new_data.timestamp;
+                }
+            if ("message" in new_data){
+                chat_data = document.createElement("li")
+                if (new_data.from == "You") {
+                    chat_data.classList.add("out_text")
+                    chat_data.innerText = "You: " + new_data.message
+                    outSound.play()
+                } else {
+                    chat_data.classList.add("in_text")
+                    chat_data.innerText = new_data.from + ": " + new_data.message
+                    inSound.play()
+                }
+            }
+            chat.appendChild(chat_data);
+            document.scrollingElement.scrollTop = document.scrollingElement.scrollHeight;
+            }
+        })
+window.addEventListener("beforeunload", function(t){
+// Do something
+const windowFeatures = "left=100,top=100,width=320,height=320";
+window.open("/add_user", "logout", windowFeatures)
+});    
+
+
+
+
+
+        </script>
+    </body>
+</html>

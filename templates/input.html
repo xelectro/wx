@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+textarea {
+    height: 40px;
+    width:  260px;
+    vertical-align: top;
+    padding-top: 0px;
+    margin-top: 0px;
+}
+.button {
+    width: 40px;
+    height: 40px;
+    color: rgb(242, 19, 19);
+    margin-top: 0px;
+}
+        </style>
+
+    </head>
+    <body>
+        <p>
+            <form id="form">
+                <textarea name="value" id="area" autocomplete="off"></textarea>
+                <input type="submit" id="send" class="button" name="submit" value="Send"/>
+            </form>
+        </p>
+    </body>
+    <script>
+        const ipAddr = "http://127.0.0.1:8080"
+        let send_btn = document.getElementById("area");
+        send_btn.focus()
+        send_btn.setSelectionRange(0,0)
+        send_btn.addEventListener("keypress", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            console.log(event)
+            document.getElementById("send").click();
+             }
+        });
+        let mainForm = document.getElementById("form")
+        mainForm.addEventListener("submit", event => {
+            event.preventDefault()
+            formData = event.target.value.value
+            console.log(`TextArea value: ${formData}`)
+            parent.postMessage(JSON.stringify({"message" : formData}), ipAddr)
+            send_btn.value = "";
+        })
+        
+    </script>
+</html>
